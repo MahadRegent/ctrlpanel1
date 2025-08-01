@@ -404,7 +404,7 @@ class ServerController extends Controller
     {
         $currentProduct = Product::find($server->product_id);
         $nodeId = $serverInfo['relationships']['node']['attributes']['id'];
-        $pteroNode = $this->pterodactyl->getNode($nodeId);
+        $node = Node::find($nodeId); // Get cached node data
         $currentEgg = $serverInfo['egg'];
 
         //$currentProductEggs = $currentProduct->eggs->pluck('id')->toArray();
@@ -418,17 +418,24 @@ class ServerController extends Controller
                 $builder->where('id', $currentEgg);
             })
             ->get()
-            ->map(function ($product) use ($currentProduct, $pteroNode) {
+            ->map(function ($product) use ($currentProduct, $node) {
                 $product->eggs = $product->eggs->pluck('name')->toArray();
 
                 $memoryDiff = $product->memory - $currentProduct->memory;
                 $diskDiff = $product->disk - $currentProduct->disk;
 
-                $maxMemory = ($pteroNode['memory'] * ($pteroNode['memory_overallocate'] + 100) / 100);
-                $maxDisk = ($pteroNode['disk'] * ($pteroNode['disk_overallocate'] + 100) / 100);
+                // Use cached node data instead of API call
+                if ($node && $node->memory && $node->disk && $node->allocated_resources) {
+                    $allocatedResources = json_decode($node->allocated_resources, true);
+                    $maxMemory = ($node->memory * ($node->memory_overallocate + 100) / 100);
+                    $maxDisk = ($node->disk * ($node->disk_overallocate + 100) / 100);
 
-                if ($memoryDiff > $maxMemory - $pteroNode['allocated_resources']['memory'] ||
-                    $diskDiff > $maxDisk - $pteroNode['allocated_resources']['disk']) {
+                    if ($memoryDiff > $maxMemory - $allocatedResources['memory'] ||
+                        $diskDiff > $maxDisk - $allocatedResources['disk']) {
+                        $product->doesNotFit = true;
+                    }
+                } else {
+                    // If no cached data, assume it doesn't fit
                     $product->doesNotFit = true;
                 }
 
