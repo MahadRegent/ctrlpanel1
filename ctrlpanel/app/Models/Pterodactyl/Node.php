@@ -46,8 +46,11 @@ class Node extends Model
             ];
         }, $nodes);
 
-        //update or create
+        //update or create with resource caching
         foreach ($nodes as $node) {
+            // Get detailed node info with resources
+            $nodeDetails = $client->getNode($node['id']);
+            
             self::query()->updateOrCreate(
                 [
                     'id' => $node['id'],
@@ -57,6 +60,12 @@ class Node extends Model
                     'description' => $node['description'],
                     'location_id' => $node['location_id'],
                     'disabled' => false,
+                    'memory' => $nodeDetails['memory'],
+                    'disk' => $nodeDetails['disk'],
+                    'memory_overallocate' => $nodeDetails['memory_overallocate'],
+                    'disk_overallocate' => $nodeDetails['disk_overallocate'],
+                    'allocated_resources' => json_encode($nodeDetails['allocated_resources']),
+                    'resource_updated_at' => now(),
                 ]);
         }
 
