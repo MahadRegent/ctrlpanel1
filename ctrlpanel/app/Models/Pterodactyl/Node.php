@@ -105,4 +105,81 @@ class Node extends Model
     {
         return $this->belongsToMany(Product::class, 'node_product', 'node_id', 'product_id');
     }
+
+    /**
+     * Check if node has enough resources for the given requirements (using cached data)
+     * 
+     * @param int $requireMemory
+     * @param int $requireDisk
+     * @return bool
+     */
+    public function hasAvailableResources(int $requireMemory, int $requireDisk): bool
+    {
+        if (!$this->memory || !$this->disk || !$this->allocated_resources) {
+            return false; // Если нет кешированных данных, считаем что ресурсов нет
+        }
+
+        $allocatedResources = json_decode($this->allocated_resources, true);
+        
+        $maxMemory = ($this->memory * ($this->memory_overallocate + 100) / 100);
+        $maxDisk = ($this->disk * ($this->disk_overallocate + 100) / 100);
+        
+        $availableMemory = $maxMemory - $allocatedResources['memory'];
+        $availableDisk = $maxDisk - $allocatedResources['disk'];
+        
+        return $requireMemory <= $availableMemory && $requireDisk <= $availableDisk;
+    }
+
+    /**
+     * Get available memory on this node
+     * 
+     * @return int
+     */
+    public function getAvailableMemory(): int
+    {
+        if (!$this->memory || !$this->allocated_resources) {
+            return 0;
+        }
+
+        $allocatedResources = json_decode($this->allocated_resources, true);
+        $maxMemory = ($this->memory * ($this->memory_overallocate + 100) / 100);
+        
+        return max(0, $maxMemory - $allocatedResources['memory']);
+    }
+
+    /**
+     * Get available disk on this node
+     * 
+     * @return int
+     */
+    public function getAvailableDisk(): int
+    {
+        if (!$this->disk || !$this->allocated_resources) {
+            return 0;
+        }
+
+        $allocatedResources = json_decode($this->allocated_resources, true);
+        $maxDisk = ($this->disk * ($this->disk_overallocate + 100) / 100);
+        
+        return max(0, $maxDisk - $allocatedResources['disk']);
+    }
+
+    /**
+     * Get node usage percentage
+     * 
+     * @return float
+     */
+    public function getUsagePercent(): float
+    {
+        if (!$this->memory || !$this->disk || !$this->allocated_resources) {
+            return 0.0;
+        }
+
+        $allocatedResources = json_decode($this->allocated_resources, true);
+        
+        $memoryUsage = $allocatedResources['memory'] / ($this->memory * ($this->memory_overallocate + 100) / 100);
+        $diskUsage = $allocatedResources['disk'] / ($this->disk * ($this->disk_overallocate + 100) / 100);
+        
+        return round(max($memoryUsage, $diskUsage) * 100, 2);
+    }
 }
