@@ -501,12 +501,12 @@ class ServerController extends Controller
         }
 
         $nodeId = $serverInfo['relationships']['node']['attributes']['id'];
-        $node = Node::findOrFail($nodeId);
+        $node = Node::find($nodeId);
 
-        // Check node resources
+        // Check node resources using cached data
         $requireMemory = $newProduct->memory - $oldProduct->memory;
         $requireDisk = $newProduct->disk - $oldProduct->disk;
-        if (!$this->pterodactyl->checkNodeResources($node, $requireMemory, $requireDisk)) {
+        if (!$node || !$node->hasAvailableResources($requireMemory, $requireDisk)) {
             return false;
         }
 
