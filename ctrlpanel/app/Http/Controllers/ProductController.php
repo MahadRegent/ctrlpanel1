@@ -154,18 +154,13 @@ class ProductController extends Controller
             }])
             ->get();
 
-        // Check if the product fits in at least one node
+        // Check if the product fits in at least one node using cached data
         foreach ($products as $product) {
             $product->doesNotFit = true;
 
             foreach ($product->nodes as $node) {
-                $pteroNode = $this->pterodactyl->getNode($node->id);
-
-                $availableMemory = ($pteroNode['memory'] * ($pteroNode['memory_overallocate'] + 100) / 100) - $pteroNode['allocated_resources']['memory'];
-                $availableDisk = ($pteroNode['disk'] * ($pteroNode['disk_overallocate'] + 100) / 100) - $pteroNode['allocated_resources']['disk'];
-
-                // If the product fits in this node, mark it as fitting and break out of the loop
-                if ($product->memory <= $availableMemory && $product->disk <= $availableDisk) {
+                // Use cached node data instead of API call
+                if ($node->hasAvailableResources($product->memory, $product->disk)) {
                     $product->doesNotFit = false;
                     break;
                 }
