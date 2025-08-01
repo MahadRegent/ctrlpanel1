@@ -73,12 +73,21 @@ class ProductController extends Controller
     public function getLocationsBasedOnEgg(Request $request, Egg $egg)
     {
         $nodes = $this->getNodesBasedOnEgg($request, $egg);
-        foreach ($nodes as $key => $node) {
-            $pteroNode = $this->pterodactyl->getNode($node->id);
-            if ($pteroNode['allocated_resources']['memory'] >= ($pteroNode['memory'] * ($pteroNode['memory_overallocate'] + 100) / 100) || $pteroNode['allocated_resources']['disk'] >= ($pteroNode['disk'] * ($pteroNode['disk_overallocate'] + 100) / 100)) {
-                $nodes->forget($key);
+        
+        // Filter nodes based on cached resource data instead of API calls
+        $nodes = $nodes->filter(function ($node) {
+            $allocatedResources = json_decode($node->allocated_resources, true);
+            if (!$allocatedResources || !$node->memory || !$node->disk) {
+                return false; // Skip nodes without cached data
             }
-        }
+            
+            $maxMemory = ($node->memory * ($node->memory_overallocate + 100) / 100);
+            $maxDisk = ($node->disk * ($node->disk_overallocate + 100) / 100);
+            
+            // Check if node is not full
+            return $allocatedResources['memory'] < $maxMemory && $allocatedResources['disk'] < $maxDisk;
+        });
+        
         $locations = collect();
 
         //locations
