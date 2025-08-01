@@ -1,0 +1,63 @@
+{
+  "__commonjsHelpers-CqkleIqs.js": {
+    "file": "assets/_commonjsHelpers-CqkleIqs.js",
+    "name": "_commonjsHelpers"
+  },
+  "css/app.css": {
+    "file": "assets/app-CjAZ7JEQ.css",
+    "src": "css/app.css",
+    "isEntry": true
+  },
+  "js/app.js": {
+    "file": "assets/app-CqPsU_Y0.js",
+    "name": "app",
+    "src": "js/app.js",
+    "isEntry": true,
+    "imports": [
+      "__commonjsHelpers-CqkleIqs.js"
+    ],
+    "css": [
+      "assets/app-DUZSDjZP.css",
+      "assets/app-CjAZ7JEQ.css"
+    ]
+  },
+  "js/coloris.js": {
+    "file": "assets/coloris-CpdT4IMT.js",
+    "name": "coloris",
+    "src": "js/coloris.js",
+    "isEntry": true,
+    "css": [
+      "assets/coloris-qY4RLc9f.css"
+    ]
+  },
+  "js/focus-trap.js": {
+    "file": "assets/focus-trap-C7aorspS.js",
+    "name": "focus-trap",
+    "src": "js/focus-trap.js",
+    "isEntry": true
+  },
+  "js/iconify-icon.js": {
+    "file": "assets/iconify-icon-C8kDCosT.js",
+    "name": "iconify-icon",
+    "src": "js/iconify-icon.js",
+    "isEntry": true
+  },
+  "js/pace.js": {
+    "file": "assets/pace-ig4MpTDk.js",
+    "name": "pace",
+    "src": "js/pace.js",
+    "isEntry": true,
+    "imports": [
+      "__commonjsHelpers-CqkleIqs.js"
+    ],
+    "css": [
+      "assets/pace-DY_hqXCb.css"
+    ]
+  },
+  "js/tinymce.js": {
+    "file": "assets/tinymce-Djw6kaHJ.js",
+    "name": "tinymce",
+    "src": "js/tinymce.js",
+    "isEntry": true
+  }
+}
