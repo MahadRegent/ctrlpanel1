@@ -147,7 +147,7 @@ class OverViewController extends Controller
         $lastEgg = Egg::query()->latest('updated_at')->first();
         $syncLastUpdate = $lastEgg ? $lastEgg->updated_at->isoFormat('LLL') : __('unknown');
 
-        //Get node information and prepare collection
+        //Get node information and prepare collection using cached data
         $pteroNodeIds = [];
         foreach ($this->pterodactyl->getNodes() as $pteroNode) {
             array_push($pteroNodeIds, $pteroNode['attributes']['id']);
@@ -160,8 +160,9 @@ class OverViewController extends Controller
             } //Check if node exists on pterodactyl too, if not, skip
             $nodes->put($nodeId, collect());
             $nodes[$nodeId]->name = $DBnode['name'];
-            $pteroNode = $this->pterodactyl->getNode($nodeId);
-            $nodes[$nodeId]->usagePercent = round(max($pteroNode['allocated_resources']['memory'] / ($pteroNode['memory'] * ($pteroNode['memory_overallocate'] + 100) / 100), $pteroNode['allocated_resources']['disk'] / ($pteroNode['disk'] * ($pteroNode['disk_overallocate'] + 100) / 100)) * 100, 2);
+            
+            // Use cached data instead of API call
+            $nodes[$nodeId]->usagePercent = $DBnode->getUsagePercent();
             $counters['totalUsagePercent'] += $nodes[$nodeId]->usagePercent;
 
             $nodes[$nodeId]->totalServers = 0;
