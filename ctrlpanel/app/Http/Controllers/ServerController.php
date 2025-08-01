@@ -563,8 +563,9 @@ class ServerController extends Controller
             ->whereHas('products', fn($q) => $q->where('product_id', $product->id))
             ->get();
 
-        $availableNodes = $nodes->reject(function ($node) use ($product) {
-            return !$this->pterodactyl->checkNodeResources($node, $product->memory, $product->disk);
+        // Use cached data instead of API calls
+        $availableNodes = $nodes->filter(function ($node) use ($product) {
+            return $node->hasAvailableResources($product->memory, $product->disk);
         });
 
         return $availableNodes->isEmpty() ? null : $availableNodes->first();
