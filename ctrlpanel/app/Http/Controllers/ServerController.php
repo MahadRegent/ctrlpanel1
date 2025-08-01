@@ -216,10 +216,23 @@ class ServerController extends Controller
         $servers = Auth::user()->servers;
 
         foreach ($servers as $server) {
-            $serverInfo = $this->pterodactyl->getServerAttributes($server->pterodactyl_id);
-            if (!$serverInfo) continue;
+            // Use cached data if available and recent (less than 1 hour old)
+            if ($server->cache_updated_at && $server->cache_updated_at->diffInHours(now()) < 1) {
+                $server->location = $server->cached_location;
+                $server->egg = $server->cached_egg;
+                $server->nest = $server->cached_nest;
+                $server->node = $server->cached_node;
+            } else {
+                // Only fetch from API if cache is stale or missing
+                $serverInfo = $this->pterodactyl->getServerAttributes($server->pterodactyl_id);
+                if (!$serverInfo) continue;
 
-            $this->updateServerInfo($server, $serverInfo);
+                $this->updateServerInfo($server, $serverInfo);
+            }
+
+            if ($server->product_id) {
+                $server->setRelation('product', Product::find($server->product_id));
+            }
         }
 
         return $servers;
