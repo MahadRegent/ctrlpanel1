@@ -16,6 +16,9 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         Commands\ChargeServers::class,
         Commands\DeleteExpiredCoupons::class,
+        Commands\RefreshServerCache::class,
+        Commands\SyncNodeResources::class,
+        Commands\SyncServerInfo::class,
     ];
 
     /**
