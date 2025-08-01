@@ -251,19 +251,32 @@ class ServerController extends Controller
             $nestAttrs = $relationships['nest']['attributes'] ?? [];
             $nodeAttrs = $relationships['node']['attributes'] ?? [];
 
-            $server->location = $locationAttrs['long'] ?? $locationAttrs['short'] ?? null;
-            $server->egg = $eggAttrs['name'] ?? null;
-            $server->nest = $nestAttrs['name'] ?? null;
-            $server->node = $nodeAttrs['name'] ?? null;
+            $location = $locationAttrs['long'] ?? $locationAttrs['short'] ?? null;
+            $egg = $eggAttrs['name'] ?? null;
+            $nest = $nestAttrs['name'] ?? null;
+            $node = $nodeAttrs['name'] ?? null;
+
+            // Set current values for immediate use
+            $server->location = $location;
+            $server->egg = $egg;
+            $server->nest = $nest;
+            $server->node = $node;
+
+            // Update cache and name if needed
+            $updateData = [
+                'cached_location' => $location,
+                'cached_egg' => $egg,
+                'cached_nest' => $nest,
+                'cached_node' => $node,
+                'cache_updated_at' => now(),
+            ];
 
             if (isset($serverInfo['name']) && $server->name !== $serverInfo['name']) {
-                $server->name = $serverInfo['name'];
-                $server->save();
+                $updateData['name'] = $serverInfo['name'];
             }
 
-            if ($server->product_id) {
-                $server->setRelation('product', Product::find($server->product_id));
-            }
+            $server->update($updateData);
+
         } catch (Exception $e) {
             Log::error('Failed to update server info', [
                 'server_id' => $server->id,
