@@ -33,6 +33,12 @@ class Kernel extends ConsoleKernel
         $schedule->command('cp:versioncheck:get')->daily();
         $schedule->command('payments:open:clear')->daily();
         $schedule->command('coupons:delete')->daily();
+        
+        // Sync node resources every 5 minutes for optimal performance
+        $schedule->command('nodes:sync-resources')->everyFiveMinutes();
+        
+        // Sync server info every 15 minutes (less critical than node resources)
+        $schedule->command('servers:sync-info')->everyFifteenMinutes();
 
         //log cronjob activity
         $schedule->call(function () {
